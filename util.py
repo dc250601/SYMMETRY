@@ -358,3 +358,42 @@ class VAE(nn.Module):
 
 #--------------------------------------------------------------------------------------
 
+class LatentOracle(nn.Module):
+    def __init__(self, feature_multipier = 1):
+        super().__init__()
+        self.mul = feature_multipier
+        self.layer1 = nn.LazyLinear(16*feature_multipier)
+        self.bn1 = nn.LazyBatchNorm1d()
+        self.relu = nn.ReLU()
+        self.head = nn.LazyLinear(9)
+        
+
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.head(x)
+        return x
+    
+#--------------------------------------------------------------------------------------
+
+class LatentDescriminator(nn.Module):
+    def __init__(self, feature_multipier = 1):
+        super().__init__()
+        self.mul = feature_multipier
+        self.layer1 = nn.LazyLinear(16*feature_multipier)
+        self.bn1 = nn.LazyBatchNorm1d()
+        self.relu = nn.ReLU()
+        self.head = nn.LazyLinear(1)
+        
+
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.head(x)
+        return x
+    
+       
+#--------------------------------------------------------------------------------------
+
