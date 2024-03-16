@@ -397,3 +397,46 @@ class LatentDescriminator(nn.Module):
        
 #--------------------------------------------------------------------------------------
 
+class MLP(nn.Module):
+    def __init__(self,feature_size, feature_multipier = 1):
+        super().__init__()
+        
+        self.layer1 = nn.Linear(feature_size,feature_size*feature_multipier)
+        # self.bn1 = nn.BatchNorm1d(64*feature_multipier) #Commenting for now will remove later to increases expressivity
+        self.relu = nn.ReLU()
+        self.layer2 = nn.Linear(feature_size*feature_multipier,feature_size)
+        
+
+    def forward(self, x):
+        x = self.layer1(x)
+        # x = self.bn1(x) #Commenting for now will remove later to increase expressivity
+        x = self.relu(x)
+        
+        x = self.layer2(x)
+        return x
+
+#--------------------------------------------------------------------------------------
+
+class MLP_Tanh(nn.Module):
+    def __init__(self,feature_size, feature_multipier = 1):
+        super().__init__()
+        
+        self.layer1 = nn.Linear(feature_size,feature_size*feature_multipier)
+        # self.bn1 = nn.BatchNorm1d(64*feature_multipier) #Commenting for now will remove later to increases expressivity
+        self.relu = nn.ReLU()
+        self.layer2 = nn.Linear(feature_size*feature_multipier,feature_size)
+        self.tanh = nn.Tanh()
+
+    def forward(self, x):
+        x = self.layer1(x)
+        # x = self.bn1(x) #Commenting for now will remove later to increase expressivity
+        x = self.relu(x)
+        
+        x = self.layer2(x)
+        x = self.tanh(x)  
+        return x
+    
+#--------------------------------------------------------------------------------------
+
+
+    
