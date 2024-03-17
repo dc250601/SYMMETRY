@@ -13,7 +13,7 @@ import imutils
 import math
 
 def get_dataset_augmented():
-    with open('./augmented_dataset.data', 'rb') as f:
+    with open('./assets/DATA/augmented_dataset.data', 'rb') as f:
         dataset = pickle.load(f)
 
     X_train = dataset["X_train"]
@@ -37,10 +37,10 @@ def get_dataset_augmented():
 
 def get_dataset_distilled():
     
-    X_train_ = torch.tensor(np.load("./dist_train_x.npy"))
-    X_test_ = torch.tensor(np.load("./dist_test_x.npy"))
+    X_train_ = torch.tensor(np.load("./assets/DATA/dist_train_x.npy"))
+    X_test_ = torch.tensor(np.load("./assets/DATA/dist_test_x.npy"))
 
-    Y_train_ = torch.tensor(np.load("./dist_train_y.npy"))
-    Y_test_ = torch.tensor(np.load("./dist_test_y.npy"))
+    Y_train_ = torch.tensor(np.load("./assets/DATA/dist_train_y.npy"))
+    Y_test_ = torch.tensor(np.load("./assets/DATA/dist_test_y.npy"))
 
-    return X_train, X_test, Y_train, Y_test
+    return X_train_, X_test_, Y_train_, Y_test_

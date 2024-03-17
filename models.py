@@ -263,7 +263,7 @@ class ImageGenerator(nn.Module):
 #                            LATENT FLOW BASED MODELS
 #--------------------------------------------------------------------------------------
 
-class VAE(nn.Module):
+class ConvVAE(nn.Module):
     def __init__(self,
                  init_channels = 8,
                  image_channels = 1,
@@ -438,5 +438,72 @@ class MLP_Tanh(nn.Module):
     
 #--------------------------------------------------------------------------------------
 
+class GeneratorLatent(nn.Module):
+    def __init__(self, num_features):
+        super().__init__()    
+        self.num_features = num_features
+        self.algebra = torch.nn.Parameter(torch.empty((num_features,num_features)))
+        self.reset_parameters()
+        
+    def reset_parameters(self) -> None:
+        nn.init.kaiming_uniform_(self.algebra, a=math.sqrt(5))
+    
+    def action(self,x):
+        return torch.mm(x,self.algebra)
 
     
+#--------------------------------------------------------------------------------------
+
+class GroupLatent(nn.Module):
+    def __init__(self,num_features, num_generators, LOSS_MODE = "MAE"): ## MAE works better than MSE but takes longer to converge and gives sparser generators
+        super().__init__()    
+        self.num_generators = num_generators
+        self.LOSS_MODE = LOSS_MODE
+        self.num_features = num_features
+        self.group = nn.ModuleList([GeneratorLatent(self.num_features) for i in range(self.num_generators)])
+        self.reset_parameters()
+        self.criterion_cos = nn.CosineSimilarity(dim=0)
+        
+    def reset_parameters(self) -> None:
+        for generator in self.group:
+            generator.reset_parameters()
+    
+    def forward(self, theta, x, order = 10):
+        t = x
+        result = x
+        for i in range(1,order+1):
+            z = 0
+            for j, generator in enumerate(self.group):
+                z = z + (theta[j][:,None]/i) * generator.action(t)
+            result = result + z
+            t = z
+        return result
+    
+    def collapse_loss(self):
+        
+        loss = 0
+        zero = torch.zeros((self.num_features,self.num_features))
+
+        for generator in self.group:
+            if self.LOSS_MODE == "MAE":
+                loss = loss + torch.mean(torch.abs(self.criterion_cos(zero,generator.algebra)))
+            if self.LOSS_MODE == "MSE":
+                loss = loss + torch.mean(self.criterion_cos(zero,generator.algebra)**2)
+        
+        return loss
+    
+    def orthogonal_loss(self):
+        
+        loss = 0
+        
+        for i,generator1 in enumerate(self.group):
+            for j,generator2 in enumerate(self.group):
+                if i!=j:
+                    if self.LOSS_MODE == "MAE":
+                        loss = loss + torch.mean(torch.abs(self.criterion_cos(generator1.algebra,generator2.algebra)))
+                    if self.LOSS_MODE == "MSE":
+                        loss = loss + torch.mean(self.criterion_cos(generator1.algebra,generator2.algebra)**2)
+        
+        return loss/2
+        
+#--------------------------------------------------------------------------------------
