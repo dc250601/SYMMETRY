@@ -383,7 +383,7 @@ class LatentDescriminator(nn.Module):
         self.mul = feature_multipier
         self.layer1 = nn.LazyLinear(16*feature_multipier)
         self.bn1 = nn.LazyBatchNorm1d()
-        self.relu = nn.ReLU()
+        self.relu = nn.LeakyReLU()
         self.head = nn.LazyLinear(1)
         
 
