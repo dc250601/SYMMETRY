@@ -438,6 +438,20 @@ class MLP_Tanh(nn.Module):
     
 #--------------------------------------------------------------------------------------
 
+class space(nn.Module):
+    def __init__(self,feature_size,feature_multipier = 1):
+        super().__init__()
+        
+        self.encoder = MLP(feature_size = feature_size, feature_multipier = feature_multipier)
+        self.decoder = MLP(feature_size = feature_size, feature_multipier = feature_multipier)
+        
+    def forward(self,x):
+        print("ERROR:302 NOT INTENDED TO BE USED IN THIS WAY")
+        return self.decoder(self.encoder(x))
+
+#--------------------------------------------------------------------------------------
+
+
 class GeneratorLatent(nn.Module):
     def __init__(self, num_features):
         super().__init__()    
@@ -482,7 +496,7 @@ class GroupLatent(nn.Module):
     def collapse_loss(self):
         
         loss = 0
-        zero = torch.zeros((self.num_features,self.num_features))
+        zero = torch.zeros((self.num_features,self.num_features),device = self.group[0].algebra.device)
 
         for generator in self.group:
             if self.LOSS_MODE == "MAE":
