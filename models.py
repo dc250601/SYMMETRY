@@ -358,6 +358,112 @@ class ConvVAE(nn.Module):
 
 #--------------------------------------------------------------------------------------
 
+class AutoEncoder(nn.Module):
+    def __init__(self, feature_multipier = 1):
+        super().__init__()
+        mul = feature_multipier
+
+        num_features = 4
+        self.encoder = nn.Sequential(
+                                nn.Conv2d(in_channels=1,
+                                          out_channels=num_features*mul,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=3),
+                                nn.BatchNorm2d(num_features*mul),
+                                nn.ReLU(inplace=True),
+        
+                                nn.MaxPool2d(2,2), # 32 --> 16
+                                
+                                nn.Conv2d(in_channels=num_features*mul,
+                                          out_channels=num_features*mul*2,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=1),
+                                nn.BatchNorm2d(num_features*mul*2),
+                                nn.ReLU(inplace=True),
+        
+                                nn.MaxPool2d(2,2), # 16 --> 8
+        
+                                nn.Conv2d(in_channels=num_features*mul*2,
+                                          out_channels=num_features*mul*4,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=1),
+                                nn.BatchNorm2d(num_features*mul*4),
+                                nn.ReLU(inplace=True),
+        
+                                nn.MaxPool2d(2,2), # 8 --> 4
+        
+                                nn.Conv2d(in_channels=num_features*mul*4,
+                                          out_channels=num_features*mul*8,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=1),
+                                nn.BatchNorm2d(num_features*mul*8),
+                                nn.ReLU(inplace=True),
+        
+                                nn.AdaptiveAvgPool2d((1,1))
+                               )
+        
+        self.decoder = nn.Sequential(
+                                nn.ConvTranspose2d(in_channels=num_features*mul*8,
+                                                   out_channels=num_features*mul*8,
+                                                   kernel_size=4,
+                                                   stride=1),
+                                nn.Conv2d(in_channels=num_features*mul*8,
+                                          out_channels=num_features*mul*8,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=1),
+                                nn.BatchNorm2d(num_features*mul*8),
+                                nn.ReLU(inplace=True),   # 1X1 --> 3X3
+        
+                                nn.ConvTranspose2d(in_channels=num_features*mul*8,
+                                                   out_channels=num_features*mul*4,
+                                                   kernel_size=2,
+                                                   stride=2),
+                                nn.Conv2d(in_channels=num_features*mul*4,
+                                          out_channels=num_features*mul*4,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=1), #4 --> 8
+                                nn.BatchNorm2d(num_features*mul*4),
+                                nn.ReLU(inplace=True),
+        
+            
+                                nn.ConvTranspose2d(in_channels=num_features*mul*4,
+                                                   out_channels=num_features*mul*2,
+                                                   kernel_size=2,
+                                                   stride=2),
+                                nn.Conv2d(in_channels=num_features*mul*2,
+                                          out_channels=num_features*mul*2,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=0), #8 --> 14
+                                nn.BatchNorm2d(num_features*mul*2),
+                                nn.ReLU(inplace=True),
+        
+            
+                                nn.ConvTranspose2d(in_channels=num_features*mul*2,
+                                                   out_channels=num_features*mul*1,
+                                                   kernel_size=2,
+                                                   stride=2),
+                                nn.Conv2d(in_channels=num_features*mul*1,
+                                          out_channels=1,
+                                          kernel_size=3,
+                                          bias=False,
+                                          padding=1), #14X14 --> 28X28
+                                 )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+
+        return x
+
+#--------------------------------------------------------------------------------------
+
 class LatentOracle(nn.Module):
     def __init__(self, feature_multipier = 1):
         super().__init__()
